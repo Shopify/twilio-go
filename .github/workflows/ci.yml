@@ -1,3 +1,4 @@
+ci.yml:
 on: [push, pull_request]
 name: Test
 jobs:
@@ -14,24 +15,51 @@ jobs:
         go-version: ${{ matrix.go-version }}
     - uses: actions/checkout@v4
       with:
-         path: './src/github.com/Shopify/twilio-go'
-    # staticcheck needs this for GOPATH
-    - run: |
-        echo "GOPATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-        echo "PATH=$GITHUB_WORKSPACE/bin:$PATH" >> $GITHUB_ENV
-    - name: Download dependencies
+        path: './src/github.com/Shopify/twilio-go'
+    - name: Set up Go environment
+      run: |
+        echo "GOPATH=${{ github.workspace }}" >> $GITHUB_ENV
+        echo "PATH=${{ github.workspace }}/bin:$GOPATH/bin:$PATH" >> $GITHUB_ENV
+        mkdir -p $GOPATH/bin
+    - name: Install dependencies
       run: |
         go get -t -v ./...
         go mod tidy
         go mod verify
       working-directory: './src/github.com/Shopify/twilio-go'
+    - name: Check for uncommitted changes after dependency installation
+      run: |
+        if [ -n "$(git status --porcelain go.mod go.sum)" ]; then
+          echo "Untracked or modified files present in go.mod or go.sum after dependency installation:"
+          git diff go.mod go.sum
+          exit 1
+        fi
+      working-directory: './src/github.com/Shopify/twilio-go'
     - name: Verify installation of binaries
       run: |
-        go get github.com/kevinburke/differ
-        go get github.com/kevinburke/write_mailmap
-        go get github.com/kevinburke/bump_version
-        go get honnef.co/go/tools/cmd/staticcheck
+        go install github.com/kevinburke/differ@latest
+        go install github.com/kevinburke/write_mailmap@latest
+        go install github.com/kevinburke/bump_version@latest
+        go install honnef.co/go/tools/cmd/staticcheck@latest
+        ls -l $GOPATH/bin
+      working-directory: './src/github.com/Shopify/twilio-go'
+    - name: Check for uncommitted changes after installing binaries
+      run: |
+        if [ -n "$(git status --porcelain go.mod go.sum)" ]; then
+          echo "Untracked or modified files present in go.mod or go.sum after installing binaries:"
+          git diff go.mod go.sum
+          exit 1
+        fi
+      working-directory: './src/github.com/Shopify/twilio-go'
+    - name: Run `make lint` and check for changes
+      run: |
+        make lint
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "Untracked or modified files present after running 'make lint':"
+          git diff
+          exit 1
+        fi
       working-directory: './src/github.com/Shopify/twilio-go'
     - name: Run tests
-      run: make ci
+      run: make test
       working-directory: './src/github.com/Shopify/twilio-go'
