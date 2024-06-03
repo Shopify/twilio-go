@@ -22,6 +22,14 @@ jobs:
     - name: Download dependencies
       run: go get -t -v ./...
       working-directory: './src/github.com/Shopify/twilio-go'
+    - name: Verify installation of binaries
+      run: |
+        go get github.com/kevinburke/differ
+        go get github.com/kevinburke/write_mailmap
+        go get github.com/kevinburke/bump_version
+        go get honnef.co/go/tools/cmd/staticcheck
+        ls -l ${GITHUB_WORKSPACE}/bin
+      working-directory: './src/github.com/Shopify/twilio-go'
     - name: Run tests
       run: make ci
       working-directory: './src/github.com/Shopify/twilio-go'
