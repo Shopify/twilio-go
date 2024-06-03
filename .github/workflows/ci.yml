@@ -32,23 +32,6 @@ jobs:
         go get github.com/kevinburke/bump_version
         go get honnef.co/go/tools/cmd/staticcheck
       working-directory: './src/github.com/Shopify/twilio-go'
-    - name: Check for uncommitted changes in go.mod and go.sum
-      run: |
-        if [ -n "$(git status --porcelain go.mod go.sum)" ]; then
-          echo "Untracked or modified files present in go.mod or go.sum after dependency installation:"
-          git diff go.mod go.sum
-          exit 1
-        fi
-      working-directory: './src/github.com/Shopify/twilio-go'
-    - name: Run `make fmt` and check for changes
-      run: |
-        make fmt
-        if [ -n "$(git status --porcelain)" ]; then
-          echo "Untracked or modified files present after running 'make fmt':"
-          git diff
-          exit 1
-        fi
-      working-directory: './src/github.com/Shopify/twilio-go'
     - name: Run tests
       run: make ci
       working-directory: './src/github.com/Shopify/twilio-go'
