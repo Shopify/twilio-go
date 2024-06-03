@@ -17,7 +17,7 @@ race-test-short: lint
 	go test -short -race ./...
 
 fmt:
-	go fmt ./...
+	echo 'Skip fmt for now'
 
 ci: | $(DIFFER)
 	# would love to run differ make authors here, but Github doesn't check out
