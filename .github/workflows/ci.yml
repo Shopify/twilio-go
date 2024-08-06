@@ -60,5 +60,5 @@ jobs:
         fi
       working-directory: './src/github.com/Shopify/twilio-go'
     - name: Run tests
-      run: make test
+      run: make ci
       working-directory: './src/github.com/Shopify/twilio-go'
